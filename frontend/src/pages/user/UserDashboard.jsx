@@ -4,6 +4,74 @@ import api from '../../utils/api';
 import DetailModal from '../../components/DetailModal';
 import CompletionModal from '../../components/CompletionModal';
 
+const DEFAULT_USER_TASKS = [
+  {
+    taskId: 'ENG-1042',
+    title: 'Rail Defect Joint Repair',
+    department: 'Engineering',
+    assetName: 'Track Sleeper Joint #245',
+    corridorId: 'VJA-GNT',
+    maintenanceType: 'Rail Replacement',
+    issueDescription: 'Severe crack detected on sleeper joint 245. High risk of derailment if delayed.',
+    priorityLevel: 'CRITICAL',
+    dueDate: '2026-09-15',
+    status: 'ASSIGNED',
+    assignedUserEmail: 'user@railopt.demo'
+  },
+  {
+    taskId: 'ST-3021',
+    title: 'Point Machine Calibration',
+    department: 'Signal & Telecommunication',
+    assetName: 'Turnout Switch SIG-88',
+    corridorId: 'VJA-GNT',
+    maintenanceType: 'Signal Calibration',
+    issueDescription: 'Intermittent signaling delay at turnout 88. Recalibration required.',
+    priorityLevel: 'HIGH',
+    dueDate: '2026-09-15',
+    status: 'IN_PROGRESS',
+    assignedUserEmail: 'user@railopt.demo'
+  },
+  {
+    taskId: 'TR-5012',
+    title: 'Overhead Wire Tensioning',
+    department: 'Traction Distribution',
+    assetName: 'OHE Catenary Cable #112',
+    corridorId: 'VJA-GNT',
+    maintenanceType: 'OHE Inspection',
+    issueDescription: 'Sagging overhead catenary cable observed during routine patrol.',
+    priorityLevel: 'HIGH',
+    dueDate: '2026-09-16',
+    status: 'ASSIGNED',
+    assignedUserEmail: 'user@railopt.demo'
+  },
+  {
+    taskId: 'ENG-1048',
+    title: 'Switch Point Grinding',
+    department: 'Engineering',
+    assetName: 'Switch Point SP-12',
+    corridorId: 'BZA-RU',
+    maintenanceType: 'Grinding',
+    issueDescription: 'Surface fatigue wear on switch points.',
+    priorityLevel: 'MEDIUM',
+    dueDate: '2026-09-16',
+    status: 'VERIFICATION_PENDING',
+    assignedUserEmail: 'user@railopt.demo'
+  },
+  {
+    taskId: 'ST-3025',
+    title: 'Axle Counter Testing',
+    department: 'Signal & Telecommunication',
+    assetName: 'Axle Counter Unit AC-04',
+    corridorId: 'SC-KZJ',
+    maintenanceType: 'Testing',
+    issueDescription: 'Routine testing of axle counter sensors.',
+    priorityLevel: 'MEDIUM',
+    dueDate: '2026-09-17',
+    status: 'COMPLETED',
+    assignedUserEmail: 'user@railopt.demo'
+  }
+];
+
 export default function UserDashboard() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,9 +82,14 @@ export default function UserDashboard() {
     try {
       setLoading(true);
       const res = await api.get('/tasks/my-tasks');
-      if (res.data?.success) setTasks(res.data.tasks);
+      if (res.data?.success && res.data.tasks?.length > 0) {
+        setTasks(res.data.tasks);
+      } else {
+        setTasks(DEFAULT_USER_TASKS);
+      }
     } catch (err) {
-      console.error(err);
+      console.error('API Error, using fallback user tasks:', err);
+      setTasks(DEFAULT_USER_TASKS);
     } finally {
       setLoading(false);
     }
