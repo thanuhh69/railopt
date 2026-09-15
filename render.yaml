@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: railopt-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: node backend/server.js
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://suryareddy6377_db_user:QhDRvOvyktVuAcKl@cluster0.sqfxs7u.mongodb.net/railopt?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        value: railopt_secret_jwt_key_sih2026
+      - key: PORT
+        value: 5000
+      - key: GROK_MODEL
+        value: grok-2-latest
