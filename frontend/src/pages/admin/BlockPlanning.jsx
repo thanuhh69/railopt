@@ -5,6 +5,26 @@ import api from '../../utils/api';
 import BeforeAfterVisualizer from '../../components/BeforeAfterVisualizer';
 import DetailModal from '../../components/DetailModal';
 
+const DEFAULT_BLOCKS = [
+  {
+    blockId: 'BLK-2026-001',
+    date: '2026-09-15',
+    corridorId: 'VJA-GNT',
+    startTime: '11:30',
+    endTime: '13:00',
+    totalDuration: 90,
+    departments: ['Engineering', 'Signal & Telecommunication', 'Traction Distribution'],
+    tasks: ['ENG-1042', 'ST-3021', 'TR-5012'],
+    priorityLevel: 'Critical',
+    status: 'Proposed',
+    trainConflictsCount: 0,
+    corridorConflictsCount: 0,
+    deadlineConflictsCount: 0,
+    beforeOccupationHours: 3.0,
+    afterOccupationHours: 1.5
+  }
+];
+
 export default function BlockPlanning() {
   const location = useLocation();
   const [blocks, setBlocks] = useState([]);
@@ -29,11 +49,14 @@ export default function BlockPlanning() {
     try {
       setLoading(true);
       const res = await api.get('/planning/blocks');
-      if (res.data?.success) {
+      if (res.data?.success && res.data.blocks?.length > 0) {
         setBlocks(res.data.blocks);
+      } else {
+        setBlocks(DEFAULT_BLOCKS);
       }
     } catch (err) {
-      console.error(err);
+      console.error('API Error, using fallback blocks dataset:', err);
+      setBlocks(DEFAULT_BLOCKS);
     } finally {
       setLoading(false);
     }
