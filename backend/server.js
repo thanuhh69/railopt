@@ -58,6 +58,22 @@ app.use('/api/dashboard', analyticsRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/seed', seedRoutes);
 
+// Root landing route for web browsers
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    system: 'RAILOPT Automatic Railway Maintenance Block Planning System API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      analytics: '/api/analytics',
+      maintenance: '/api/maintenance',
+      planning: '/api/planning',
+      conflicts: '/api/conflicts'
+    }
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
