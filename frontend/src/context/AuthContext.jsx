@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('railopt_user');
+    localStorage.removeItem('railopt_token');
   };
 
   return (
