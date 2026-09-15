@@ -2,7 +2,9 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { seedInMemoryStore } from './inMemoryStore.js';
+import { seedInMemoryStore, memoryDb } from './inMemoryStore.js';
+import { runSeedScript } from '../scripts/seed.js';
+import MaintenanceTask from '../models/MaintenanceTask.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +22,18 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000 // 5 seconds connection timeout
     });
     console.log(`[MongoDB Connected Successfully]: ${conn.connection.host}`);
+    
+    // Auto-seed if database is currently empty
+    try {
+      const taskCount = await MaintenanceTask.countDocuments();
+      if (taskCount === 0) {
+        console.log('[MongoDB Notice]: Database has 0 tasks. Auto-seeding initial dataset into MongoDB Atlas...');
+        await runSeedScript();
+      }
+    } catch (seedErr) {
+      console.warn('[MongoDB Auto-Seed Notice]: Auto-seed skipped:', seedErr.message);
+    }
+
     return conn;
   } catch (error) {
     console.warn(`[MongoDB Notice]: Database connection failed (${error.message}).`);

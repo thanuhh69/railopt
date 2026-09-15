@@ -9,7 +9,8 @@ const isDbConnected = () => mongoose.connection.readyState === 1;
 router.get('/', async (req, res) => {
   try {
     if (isDbConnected()) {
-      const requests = await BlockRequest.find({}).sort({ createdAt: -1 });
+      let requests = await BlockRequest.find({}).sort({ createdAt: -1 });
+      if (!requests || requests.length === 0) requests = memoryDb.blockRequests;
       return res.json({ success: true, requests });
     }
     res.json({ success: true, requests: memoryDb.blockRequests });

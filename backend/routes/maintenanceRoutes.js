@@ -36,7 +36,9 @@ router.get('/', async (req, res) => {
         MaintenanceTask.find(query).sort({ priorityScore: -1, createdAt: -1 }).skip(skip).limit(limitNum),
         MaintenanceTask.countDocuments(query)
       ]);
-      return res.json({ success: true, tasks, total, page: pageNum, totalPages: Math.ceil(total / limitNum) || 1 });
+      if (total > 0 || department || priority || corridor || status || search) {
+        return res.json({ success: true, tasks, total, page: pageNum, totalPages: Math.ceil(total / limitNum) || 1 });
+      }
     }
 
     // In-Memory Fallback

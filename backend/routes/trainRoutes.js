@@ -12,7 +12,8 @@ const isDbConnected = () => mongoose.connection.readyState === 1;
 router.get('/', async (req, res) => {
   try {
     if (isDbConnected()) {
-      const trains = await TrainSchedule.find({}).sort({ arrivalTime: 1 });
+      let trains = await TrainSchedule.find({}).sort({ arrivalTime: 1 });
+      if (!trains || trains.length === 0) trains = memoryDb.trains;
       return res.json({ success: true, trains });
     }
     res.json({ success: true, trains: memoryDb.trains });

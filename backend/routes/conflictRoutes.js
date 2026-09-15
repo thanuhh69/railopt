@@ -10,7 +10,8 @@ const isDbConnected = () => mongoose.connection.readyState === 1;
 router.get('/', async (req, res) => {
   try {
     if (isDbConnected()) {
-      const conflicts = await Conflict.find({}).sort({ createdAt: -1 });
+      let conflicts = await Conflict.find({}).sort({ createdAt: -1 });
+      if (!conflicts || conflicts.length === 0) conflicts = memoryDb.conflicts;
       return res.json({ success: true, conflicts });
     }
     res.json({ success: true, conflicts: memoryDb.conflicts });

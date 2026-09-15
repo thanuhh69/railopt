@@ -64,7 +64,8 @@ router.post('/generate', async (req, res) => {
 router.get('/blocks', async (req, res) => {
   try {
     if (isDbConnected()) {
-      const blocks = await OptimizedBlock.find({}).sort({ date: 1, startTime: 1 });
+      let blocks = await OptimizedBlock.find({}).sort({ date: 1, startTime: 1 });
+      if (!blocks || blocks.length === 0) blocks = memoryDb.optimizedBlocks;
       return res.json({ success: true, blocks });
     }
     res.json({ success: true, blocks: memoryDb.optimizedBlocks });

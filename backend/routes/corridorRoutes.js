@@ -12,7 +12,8 @@ const isDbConnected = () => mongoose.connection.readyState === 1;
 router.get('/', async (req, res) => {
   try {
     if (isDbConnected()) {
-      const corridors = await Corridor.find({}).sort({ corridorId: 1 });
+      let corridors = await Corridor.find({}).sort({ corridorId: 1 });
+      if (!corridors || corridors.length === 0) corridors = memoryDb.corridors;
       return res.json({ success: true, corridors });
     }
     res.json({ success: true, corridors: memoryDb.corridors });
