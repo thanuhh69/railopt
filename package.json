@@ -1,0 +1,12 @@
+{
+  "name": "railopt",
+  "version": "1.0.0",
+  "description": "RAILOPT - Automatic Railway Maintenance Block Planning System",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node backend/server.js",
+    "build": "cd backend && npm install",
+    "seed": "node backend/scripts/seed.js"
+  }
+}
