@@ -127,7 +127,14 @@ router.post('/login', async (req, res) => {
         fullName: 'Chief Planning Engineer (Admin)',
         email: email,
         role: 'ADMIN',
-        department: 'Operations Planning'
+        department: 'Operations Planning',
+        employeeId: 'EMP-9001',
+        designation: 'Chief Planning Engineer',
+        phone: '+91 98480 12345',
+        baseCity: 'Vijayawada',
+        railwayDivision: 'Vijayawada Division',
+        assignedZone: 'Vijayawada Area',
+        assignedCorridor: 'VJA-GNT'
       };
       const token = generateToken(adminUser);
       return res.json({ success: true, token, user: adminUser });
@@ -147,7 +154,13 @@ router.post('/login', async (req, res) => {
             email: dbUser.email,
             role: dbUser.role,
             department: dbUser.department,
-            employeeId: dbUser.employeeId
+            designation: dbUser.designation,
+            employeeId: dbUser.employeeId,
+            phone: dbUser.phone,
+            baseCity: dbUser.baseCity || 'Vijayawada',
+            railwayDivision: dbUser.railwayDivision || 'Vijayawada Division',
+            assignedZone: dbUser.assignedZone || 'Vijayawada Area',
+            assignedCorridor: dbUser.assignedCorridor || 'VJA-GNT'
           }
         });
       }
@@ -169,7 +182,13 @@ router.post('/login', async (req, res) => {
             email: memUser.email,
             role: memUser.role,
             department: memUser.department,
-            employeeId: memUser.employeeId
+            designation: memUser.designation || 'Senior Section Engineer',
+            employeeId: memUser.employeeId || 'EMP-1042',
+            phone: memUser.phone || '+91 94401 56789',
+            baseCity: memUser.baseCity || 'Vijayawada',
+            railwayDivision: memUser.railwayDivision || 'Vijayawada Division',
+            assignedZone: memUser.assignedZone || 'Vijayawada Area',
+            assignedCorridor: memUser.assignedCorridor || 'VJA-GNT'
           }
         });
       }
@@ -180,10 +199,17 @@ router.post('/login', async (req, res) => {
       const defaultUser = {
         id: 'usr-user-02',
         name: 'Ravi Kumar (SSE)',
-        fullName: 'Ravi Kumar (SSE)',
+        fullName: 'Ravi Kumar',
         email: 'user@railopt.demo',
         role: 'USER',
-        department: 'Engineering'
+        department: 'Engineering',
+        designation: 'Senior Section Engineer',
+        employeeId: 'EMP-1042',
+        phone: '+91 94401 56789',
+        baseCity: 'Vijayawada',
+        railwayDivision: 'Vijayawada Division',
+        assignedZone: 'Vijayawada Area',
+        assignedCorridor: 'VJA-GNT'
       };
       const token = generateToken(defaultUser);
       return res.json({ success: true, token, user: defaultUser });
@@ -196,8 +222,47 @@ router.post('/login', async (req, res) => {
 });
 
 // Current User Profile
-router.get('/me', protect, (req, res) => {
-  res.json({ success: true, user: req.user });
+router.get('/me', protect, async (req, res) => {
+  try {
+    if (isDbConnected()) {
+      const user = await User.findById(req.user?.id).select('-password');
+      if (user) return res.json({ success: true, user });
+    }
+
+    const memUser = memoryDb.users.find(u => u.email === req.user?.email || u.id === req.user?.id);
+    res.json({ success: true, user: memUser || req.user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update Profile Fields
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const { fullName, phone, baseCity } = req.body;
+    if (isDbConnected()) {
+      const user = await User.findById(req.user?.id);
+      if (user) {
+        if (fullName) user.fullName = fullName;
+        if (phone) user.phone = phone;
+        if (baseCity) user.baseCity = baseCity;
+        await user.save();
+        return res.json({ success: true, message: 'Profile updated successfully', user });
+      }
+    }
+
+    const memUser = memoryDb.users.find(u => u.email === req.user?.email);
+    if (memUser) {
+      if (fullName) memUser.fullName = fullName;
+      if (phone) memUser.phone = phone;
+      if (baseCity) memUser.baseCity = baseCity;
+      return res.json({ success: true, message: 'Profile updated successfully', user: memUser });
+    }
+
+    res.json({ success: true, message: 'Profile updated successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 export default router;

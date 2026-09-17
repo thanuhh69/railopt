@@ -23,6 +23,9 @@ import Reports from './pages/admin/Reports';
 import ActivityLogs from './pages/admin/ActivityLogs';
 
 import UserDashboard from './pages/user/UserDashboard';
+import MyTasks from './pages/user/MyTasks';
+import UserSchedule from './pages/user/UserSchedule';
+import UserProfile from './pages/user/UserProfile';
 
 function AdminLayout() {
   const location = useLocation();
@@ -79,15 +82,35 @@ function AdminLayout() {
 }
 
 function UserLayout() {
+  const location = useLocation();
+
+  const getUserPageTitle = (pathname) => {
+    switch (pathname) {
+      case '/user/dashboard': return { title: 'Field Staff Operations Portal', subtitle: 'Assigned Maintenance Tasks & Base Railway Operational Location' };
+      case '/user/my-tasks': return { title: 'My Work Orders', subtitle: 'Filterable Maintenance Assignments & Completion Reports' };
+      case '/user/schedule': return { title: 'Maintenance Schedule Timeline', subtitle: 'Weekly & Monthly Railway Corridor Block Execution Grid' };
+      case '/user/profile': return { title: 'Employee Operational Profile', subtitle: 'Assigned Railway Division, Zone & Contact Identity' };
+      default: return { title: 'RAILOPT User Portal', subtitle: 'Field Maintenance Staff Task Execution Portal' };
+    }
+  };
+
+  const { title, subtitle } = getUserPageTitle(location.pathname);
+
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <Header title="RAILOPT User Portal" subtitle="Field Maintenance Staff Task Execution Portal" />
-      <main className="max-w-7xl mx-auto py-6">
-        <Routes>
-          <Route path="dashboard" element={<UserDashboard />} />
-          <Route path="*" element={<Navigate to="dashboard" replace />} />
-        </Routes>
-      </main>
+    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <Header title={title} subtitle={subtitle} />
+        <main className="flex-1">
+          <Routes>
+            <Route path="dashboard" element={<UserDashboard />} />
+            <Route path="my-tasks" element={<MyTasks />} />
+            <Route path="schedule" element={<UserSchedule />} />
+            <Route path="profile" element={<UserProfile />} />
+            <Route path="*" element={<Navigate to="dashboard" replace />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 }

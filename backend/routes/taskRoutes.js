@@ -149,15 +149,61 @@ router.patch('/:id/start', protect, async (req, res) => {
   }
 });
 
-// Complete Task (Upload Images + Create Report -> VERIFICATION_PENDING)
-router.post('/:id/complete', protect, upload.array('evidenceImages', 5), async (req, res) => {
+// GET Single Task Detail by ID
+router.get('/:id', async (req, res) => {
   try {
     const taskId = req.params.id;
-    const { completionNotes, workPerformed, issuesFound } = req.body;
+    if (isDbConnected()) {
+      const task = await MaintenanceTask.findOne({ taskId });
+      if (task) return res.json({ success: true, task });
+    }
 
-    // Collect uploaded image URLs
-    const imageFiles = req.files || [];
-    const evidenceImages = imageFiles.map(file => `/uploads/maintenance/${taskId}/${file.filename}`);
+    const task = memoryDb.tasks.find(t => t.taskId === taskId || t.taskId.toLowerCase() === taskId.toLowerCase());
+    if (task) return res.json({ success: true, task });
+
+    res.status(404).json({ success: false, message: 'Maintenance task not found' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Complete Task (Upload Separate Before/After Images + Create Report -> VERIFICATION_PENDING)
+router.post('/:id/complete', protect, upload.any(), async (req, res) => {
+  try {
+    const taskId = req.params.id;
+    const { completionNotes, workPerformed, issuesFound, beforeImageUrls, afterImageUrls } = req.body;
+
+    const files = req.files || [];
+    const beforeImages = [];
+    const afterImages = [];
+
+    files.forEach(file => {
+      const url = `/uploads/maintenance/${taskId}/${file.filename}`;
+      if (file.fieldname === 'beforeImages') {
+        beforeImages.push(url);
+      } else if (file.fieldname === 'afterImages') {
+        afterImages.push(url);
+      } else {
+        beforeImages.push(url);
+      }
+    });
+
+    if (beforeImageUrls) {
+      try {
+        const parsed = typeof beforeImageUrls === 'string' ? JSON.parse(beforeImageUrls) : beforeImageUrls;
+        if (Array.isArray(parsed)) beforeImages.push(...parsed);
+      } catch (e) {}
+    }
+
+    if (afterImageUrls) {
+      try {
+        const parsed = typeof afterImageUrls === 'string' ? JSON.parse(afterImageUrls) : afterImageUrls;
+        if (Array.isArray(parsed)) afterImages.push(...parsed);
+      } catch (e) {}
+    }
+
+    if (beforeImages.length === 0) beforeImages.push('/uploads/sample_before_work.jpg');
+    if (afterImages.length === 0) afterImages.push('/uploads/sample_after_work.jpg');
 
     // Create completion report
     const reportData = {
@@ -166,8 +212,10 @@ router.post('/:id/complete', protect, upload.array('evidenceImages', 5), async (
       submittedByName: req.user?.name || 'Ravi Kumar',
       completionNotes: completionNotes || 'Work completed per standards.',
       workPerformed: workPerformed || 'Inspected and serviced asset.',
-      issuesFound: issuesFound || 'None',
-      evidenceImages: evidenceImages.length > 0 ? evidenceImages : ['/uploads/sample_evidence.jpg'],
+      issuesFound: issuesFound || 'None reported',
+      evidenceImages: [...beforeImages, ...afterImages],
+      beforeImages,
+      afterImages,
       submittedAt: new Date(),
       verificationStatus: 'PENDING'
     };
@@ -176,7 +224,7 @@ router.post('/:id/complete', protect, upload.array('evidenceImages', 5), async (
       await CompletionReport.create(reportData);
       const updatedTask = await MaintenanceTask.findOneAndUpdate(
         { taskId },
-        { status: 'VERIFICATION_PENDING' },
+        { status: 'VERIFICATION_PENDING', rejectionReason: '' },
         { new: true }
       );
 
@@ -192,7 +240,7 @@ router.post('/:id/complete', protect, upload.array('evidenceImages', 5), async (
         user: req.user?.name || 'Staff User',
         role: 'USER',
         action: 'REPORT_SUBMITTED',
-        description: `Submitted completion report & evidence images for task ${taskId}`,
+        description: `Submitted completion report with Before (${beforeImages.length}) & After (${afterImages.length}) evidence images for task ${taskId}`,
         taskId
       });
 
@@ -201,7 +249,10 @@ router.post('/:id/complete', protect, upload.array('evidenceImages', 5), async (
 
     // In-memory fallback
     const task = memoryDb.tasks.find(t => t.taskId === taskId);
-    if (task) task.status = 'VERIFICATION_PENDING';
+    if (task) {
+      task.status = 'VERIFICATION_PENDING';
+      task.rejectionReason = '';
+    }
     res.json({ success: true, message: 'Completion report & image evidence submitted. Waiting for admin verification.', task, report: reportData });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

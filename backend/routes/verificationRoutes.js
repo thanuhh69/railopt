@@ -14,8 +14,18 @@ const isDbConnected = () => mongoose.connection.readyState === 1;
 router.get('/', protect, adminOnly, async (req, res) => {
   try {
     if (isDbConnected()) {
-      const reports = await CompletionReport.find({ verificationStatus: 'PENDING' }).sort({ submittedAt: -1 });
-      return res.json({ success: true, reports });
+      const reports = await CompletionReport.find({ verificationStatus: 'PENDING' }).sort({ submittedAt: -1 }).lean();
+      
+      // Fetch associated task details for location hierarchy
+      const enrichedReports = await Promise.all(reports.map(async (rep) => {
+        const task = await MaintenanceTask.findOne({ taskId: rep.taskId }).lean();
+        return {
+          ...rep,
+          taskDetails: task || {}
+        };
+      }));
+
+      return res.json({ success: true, reports: enrichedReports });
     }
 
     const pendingTasks = memoryDb.tasks.filter(t => t.status === 'VERIFICATION_PENDING');
@@ -27,9 +37,21 @@ router.get('/', protect, adminOnly, async (req, res) => {
       completionNotes: 'Replaced cracked rail defect joint, torqued fishplate bolts to 450 Nm, and cleared track circuit section.',
       workPerformed: 'Replaced rail joint 245, installed new sleepers, tested alignment.',
       issuesFound: 'Minor ballast compaction needed on turnout 3B.',
-      evidenceImages: ['/uploads/sample_rail_work.jpg'],
+      evidenceImages: ['https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80'],
+      beforeImages: ['https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=600&q=80'],
+      afterImages: ['https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=600&q=80'],
       submittedAt: t.updatedAt || new Date(),
-      verificationStatus: 'PENDING'
+      verificationStatus: 'PENDING',
+      taskDetails: {
+        baseCity: t.baseCity || 'Vijayawada',
+        railwayDivision: t.railwayDivision || 'Vijayawada (BZA)',
+        zone: t.zone || 'Vijayawada Area',
+        corridorId: t.corridorId || 'VJA-GNT-CORRIDOR',
+        section: t.section || 'Vijayawada - Mangalagiri - Guntur Track 1',
+        maintenanceLocation: t.maintenanceLocation || 'KM 14/200 - KM 16/400 (Mangalagiri)',
+        assetName: t.assetName || 'Track Section VJA-04',
+        assetType: t.assetType || 'TRACK'
+      }
     }));
 
     res.json({ success: true, reports });
@@ -87,7 +109,7 @@ router.post('/:id/verify', protect, adminOnly, async (req, res) => {
           { new: true }
         );
         const taskId = report ? report.taskId : reportId;
-        await MaintenanceTask.findOneAndUpdate({ taskId }, { status: 'IN_PROGRESS' });
+        await MaintenanceTask.findOneAndUpdate({ taskId }, { status: 'IN_PROGRESS', rejectionReason: reason });
 
         await Notification.create({
           recipient: report?.submittedBy || 'user@railopt.demo',
@@ -109,7 +131,10 @@ router.post('/:id/verify', protect, adminOnly, async (req, res) => {
       }
 
       const task = memoryDb.tasks.find(t => t.taskId === reportId || `rep-${t.taskId}` === reportId);
-      if (task) task.status = 'IN_PROGRESS';
+      if (task) {
+        task.status = 'IN_PROGRESS';
+        task.rejectionReason = reason;
+      }
       return res.json({ success: true, message: `Completion report rejected. Task returned to IN_PROGRESS.` });
     }
 

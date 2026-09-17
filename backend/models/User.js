@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
   employeeId: { type: String, required: true },
   department: { type: String, enum: ['Engineering', 'Traction', 'Signal & Telecommunication', 'Operations Planning'], default: 'Engineering' },
   designation: { type: String, default: 'Senior Section Engineer' },
+  baseCity: { type: String, default: 'Vijayawada' },
+  railwayDivision: { type: String, default: 'Vijayawada Division' },
+  assignedZone: { type: String, default: 'Vijayawada Area' },
+  assignedCorridor: { type: String, default: 'VJA-GNT' },
   role: { type: String, enum: ['USER', 'ADMIN'], default: 'USER' }
 }, { timestamps: true });
 

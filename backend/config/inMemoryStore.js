@@ -6,8 +6,36 @@ import { calculateFallbackPriority } from '../services/priorityEngine.js';
 
 export const memoryDb = {
   users: [
-    { id: 'usr-admin-01', email: 'admin@railopt.demo', name: 'Chief Planning Engineer (Admin)', role: 'admin', department: 'Operations Planning' },
-    { id: 'usr-field-02', email: 'user@railopt.demo', name: 'Senior Section Engineer (User)', role: 'user', department: 'Engineering Maintenance' }
+    {
+      id: 'usr-admin-01',
+      email: 'admin@railopt.demo',
+      name: 'Chief Planning Engineer (Admin)',
+      fullName: 'Chief Planning Engineer (Admin)',
+      role: 'ADMIN',
+      department: 'Operations Planning',
+      employeeId: 'EMP-9001',
+      designation: 'Chief Planning Engineer',
+      phone: '+91 98480 12345',
+      baseCity: 'Vijayawada',
+      railwayDivision: 'Vijayawada Division',
+      assignedZone: 'Vijayawada Area',
+      assignedCorridor: 'VJA-GNT'
+    },
+    {
+      id: 'usr-field-02',
+      email: 'user@railopt.demo',
+      name: 'Ravi Kumar (SSE)',
+      fullName: 'Ravi Kumar',
+      role: 'USER',
+      department: 'Engineering',
+      employeeId: 'EMP-1042',
+      designation: 'Senior Section Engineer',
+      phone: '+91 94401 56789',
+      baseCity: 'Vijayawada',
+      railwayDivision: 'Vijayawada Division',
+      assignedZone: 'Vijayawada Area',
+      assignedCorridor: 'VJA-GNT'
+    }
   ],
   tasks: [],
   corridors: [],
@@ -29,11 +57,11 @@ export const seedInMemoryStore = () => {
   memoryDb.conflicts = [];
 
   const corridorsList = [
-    { corridorId: 'VJA-GNT', from: 'Vijayawada', to: 'Guntur', count: 8 },
-    { corridorId: 'NDL-GNT', from: 'Nandyal', to: 'Guntur', count: 6 },
-    { corridorId: 'BZA-RU', from: 'Vijayawada', to: 'Renigunta', count: 12 },
-    { corridorId: 'SC-KZJ', from: 'Secunderabad', to: 'Kazipet', count: 14 },
-    { corridorId: 'VSKP-BZA', from: 'Visakhapatnam', to: 'Vijayawada', count: 10 }
+    { corridorId: 'VJA-GNT', from: 'Vijayawada', to: 'Guntur', count: 8, division: 'Vijayawada Division', zone: 'Vijayawada Area', section: 'VJA-GDL' },
+    { corridorId: 'NDL-GNT', from: 'Nandyal', to: 'Guntur', count: 6, division: 'Guntur Division', zone: 'Nandyal Zone', section: 'NDL-GNT-02' },
+    { corridorId: 'BZA-RU', from: 'Vijayawada', to: 'Renigunta', count: 12, division: 'Vijayawada Division', zone: 'South Coast Corridor', section: 'BZA-RU-01' },
+    { corridorId: 'SC-KZJ', from: 'Secunderabad', to: 'Kazipet', count: 14, division: 'Secunderabad Division', zone: 'Secunderabad Area', section: 'SC-KZJ-03' },
+    { corridorId: 'VSKP-BZA', from: 'Visakhapatnam', to: 'Vijayawada', count: 10, division: 'Waltair Division', zone: 'Coastal Zone', section: 'VSKP-BZA-05' }
   ];
 
   const dates = ['2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18', '2026-09-19'];
@@ -67,7 +95,8 @@ export const seedInMemoryStore = () => {
   for (let i = 0; i < 520; i++) {
     const dept = depts[i % 3];
     const source = sources[i % 3];
-    const corridor = corridorsList[i % corridorsList.length].corridorId;
+    const corrObj = corridorsList[i % corridorsList.length];
+    const corridor = corrObj.corridorId;
     const types = mTypes[dept];
     const mType = types[i % types.length];
     const date = dates[i % dates.length];
@@ -88,13 +117,25 @@ export const seedInMemoryStore = () => {
       criticality, urgency, assetImpact, trainImpact, safetyImpact, overdueDays, failureHistory
     });
 
+    const statusList = ['ASSIGNED', 'IN_PROGRESS', 'VERIFICATION_PENDING', 'COMPLETED'];
+    const assignedStatus = statusList[i % 4];
+
     memoryDb.tasks.push({
       taskId,
+      title: `${mType} - Section A-${(i % 30) + 1}`,
       department: dept,
       sourceSystem: source,
-      assetId: `ASSET-${Math.floor(Math.random() * 800) + 100}`,
+      assetId: `TRK-${corrObj.from.slice(0, 3).toUpperCase()}-A${(i % 30) + 1}`,
       assetName: `${mType} Unit ${i + 1}`,
+      assetType: dept === 'Engineering' ? 'Rail Track & Sleepers' : (dept === 'Traction Distribution' ? 'OHE Catenary Wire' : 'Turnout Signaling Relay'),
+      assetCondition: criticality > 80 ? 'Critical Defect - Action Needed' : 'Routine Maintenance Due',
+      baseCity: corrObj.from,
+      railwayDivision: corrObj.division,
+      zone: corrObj.zone,
       corridorId: corridor,
+      section: corrObj.section,
+      maintenanceLocation: `Track Section A-${(i % 30) + 1}`,
+      location: `Track Section A-${(i % 30) + 1}`,
       maintenanceType: mType,
       issueDescription: `Scheduled defect maintenance for ${mType} along corridor line ${corridor}.`,
       criticality,
@@ -106,9 +147,18 @@ export const seedInMemoryStore = () => {
       failureHistory,
       estimatedDuration: estDuration,
       dueDate: date,
-      status: 'Prioritized',
+      startTime: '10:00',
+      endTime: '12:00',
+      blockId: `BLK-2026-${String((i % 20) + 1).padStart(3, '0')}`,
+      status: assignedStatus,
       priorityScore: prio.priorityScore,
       priorityLevel: prio.priorityLevel,
+      assignedUserEmail: 'user@railopt.demo',
+      assignedUserName: 'Ravi Kumar (SSE)',
+      workInstructions: `Perform step-by-step ${mType}, torque mechanical fasteners, check line gauge alignment, and record post-repair tolerance measurements.`,
+      safetyInstructions: 'Ensure catenary overhead power disconnection, apply track circuit shunt flags, and deploy look-out protection before entering section.',
+      specialInstructions: 'Perform post-repair ultrasound test on weld joint and log ultrasonic defect readings.',
+      rejectionReason: '',
       reasoning: prio.reasoning
     });
   }

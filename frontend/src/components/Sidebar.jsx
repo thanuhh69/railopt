@@ -29,7 +29,7 @@ export default function Sidebar() {
     navigate('/login');
   };
 
-  const navItems = [
+  const adminNavItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Data Integration', path: '/admin/data-integration', icon: Database },
     { name: 'Maintenance', path: '/admin/maintenance', icon: Wrench },
@@ -45,6 +45,16 @@ export default function Sidebar() {
     { name: 'Reports', path: '/admin/reports', icon: FileSpreadsheet },
     { name: 'Activity Logs', path: '/admin/activity-logs', icon: History }
   ];
+
+  const userNavItems = [
+    { name: 'Dashboard', path: '/user/dashboard', icon: LayoutDashboard },
+    { name: 'My Work Orders', path: '/user/my-tasks', icon: Wrench },
+    { name: 'Schedule Timeline', path: '/user/schedule', icon: CalendarDays },
+    { name: 'My Employee Profile', path: '/user/profile', icon: Train }
+  ];
+
+  const isUser = (user?.role || '').toUpperCase() === 'USER';
+  const navItems = isUser ? userNavItems : adminNavItems;
 
   return (
     <aside className="w-64 bg-[#0A192F] text-slate-200 flex flex-col h-screen sticky top-0 border-r border-slate-800 select-none z-30">

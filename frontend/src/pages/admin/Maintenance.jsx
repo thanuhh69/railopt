@@ -91,14 +91,23 @@ export default function Maintenance() {
           </p>
         </div>
 
-        <button
-          onClick={handlePrioritizeAll}
-          disabled={prioritizing}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <Sparkles className="w-4 h-4 text-amber-300" />
-          {prioritizing ? 'Calculating Priority Scores...' : 'Recalculate Priorities (Grok/Engine)'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+          >
+            <Wrench className="w-4 h-4 text-white" />
+            + Create & Assign Task
+          </button>
+          <button
+            onClick={handlePrioritizeAll}
+            disabled={prioritizing}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            {prioritizing ? 'Calculating...' : 'Recalculate Priorities (Engine)'}
+          </button>
+        </div>
       </div>
 
       {message && (
@@ -246,6 +255,177 @@ export default function Maintenance() {
         data={selectedTask}
         type="task"
       />
+
+      {/* Admin Task Creation Modal */}
+      {showCreateModal && (
+        <CreateTaskModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => { setMessage('Task created & allocated to user successfully!'); fetchTasks(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function CreateTaskModal({ isOpen, onClose, onSuccess }) {
+  const [title, setTitle] = useState('');
+  const [department, setDepartment] = useState('Engineering');
+  const [maintenanceType, setMaintenanceType] = useState('Rail Defect Repair');
+  const [priorityLevel, setPriorityLevel] = useState('CRITICAL');
+  const [baseCity, setBaseCity] = useState('Vijayawada');
+  const [railwayDivision, setRailwayDivision] = useState('Vijayawada Division');
+  const [zone, setZone] = useState('Vijayawada Area');
+  const [corridorId, setCorridorId] = useState('VJA-GNT');
+  const [section, setSection] = useState('VJA-GDL');
+  const [maintenanceLocation, setMaintenanceLocation] = useState('Track Section A-17');
+  const [assetId, setAssetId] = useState('TRK-VJA-A17');
+  const [assetName, setAssetName] = useState('Track Section A-17');
+  const [dueDate, setDueDate] = useState('2026-09-17');
+  const [startTime, setStartTime] = useState('10:00 AM');
+  const [endTime, setEndTime] = useState('12:00 PM');
+  const [assignedUserEmail, setAssignedUserEmail] = useState('user@railopt.demo');
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const taskObj = {
+        title,
+        description: `${maintenanceType} required at ${maintenanceLocation} along ${corridorId} corridor.`,
+        department,
+        maintenanceType,
+        priorityLevel,
+        baseCity,
+        railwayDivision,
+        zone,
+        corridorId,
+        section,
+        maintenanceLocation,
+        location: maintenanceLocation,
+        assetId,
+        assetName,
+        dueDate,
+        startTime,
+        endTime,
+        assignedUserEmail,
+        assignedUserName: 'Ravi Kumar (SSE)',
+        status: 'ASSIGNED'
+      };
+
+      const res = await api.post('/tasks', taskObj);
+      if (res.data?.success) {
+        onSuccess();
+        onClose();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden my-6">
+        <div className="px-6 py-4 bg-[#002B49] text-white flex items-center justify-between">
+          <h3 className="text-base font-black tracking-tight">Create & Allocate Maintenance Work Order</h3>
+          <button onClick={onClose} className="text-white/80 hover:text-white font-bold text-sm">✕</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto text-xs">
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Work Order Title *</label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Track Inspection & Defect Joint Repair"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-900 focus:outline-none focus:border-blue-600"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Department *</label>
+              <select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-semibold"
+              >
+                <option value="Engineering">Engineering</option>
+                <option value="Traction Distribution">Traction Distribution</option>
+                <option value="Signal & Telecommunication">Signal & Telecommunication</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Priority Level *</label>
+              <select
+                value={priorityLevel}
+                onChange={(e) => setPriorityLevel(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-red-700"
+              >
+                <option value="CRITICAL">CRITICAL</option>
+                <option value="HIGH">HIGH</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="LOW">LOW</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Railway Location Hierarchy */}
+          <div className="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200 space-y-3">
+            <span className="font-black text-blue-900 uppercase text-[11px] block">Mandatory Railway Location Hierarchy</span>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Base City</label>
+                <input type="text" required value={baseCity} onChange={(e) => setBaseCity(e.target.value)} className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Railway Division</label>
+                <input type="text" required value={railwayDivision} onChange={(e) => setRailwayDivision(e.target.value)} className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Assigned Corridor</label>
+                <input type="text" required value={corridorId} onChange={(e) => setCorridorId(e.target.value)} className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono font-bold text-blue-700" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Maintenance Location</label>
+                <input type="text" required value={maintenanceLocation} onChange={(e) => setMaintenanceLocation(e.target.value)} className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-bold text-blue-900" />
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule & Asset */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Asset ID</label>
+              <input type="text" required value={assetId} onChange={(e) => setAssetId(e.target.value)} className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs font-mono font-bold" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Schedule Date</label>
+              <input type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs font-mono font-bold" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Assign User</label>
+              <input type="text" required value={assignedUserEmail} onChange={(e) => setAssignedUserEmail(e.target.value)} className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-blue-700" />
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 font-bold text-xs rounded-xl">Cancel</button>
+            <button type="submit" disabled={submitting} className="px-5 py-2 bg-emerald-600 text-white font-black text-xs rounded-xl shadow-md">
+              {submitting ? 'Creating...' : 'Create & Allocate Task'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
