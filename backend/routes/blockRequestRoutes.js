@@ -38,15 +38,26 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id/status', async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, rescheduledTime } = req.body; // 'Approved', 'Rejected', 'Rescheduled', 'Cancelled'
+    const requestId = req.params.id;
+
     if (isDbConnected()) {
-      const updated = await BlockRequest.findOneAndUpdate({ requestId: req.params.id }, { status }, { new: true });
-      return res.json({ success: true, request: updated });
+      const updated = await BlockRequest.findOneAndUpdate({ requestId }, { status }, { new: true });
+      return res.json({ success: true, request: updated, message: `Block request ${requestId} updated to ${status}` });
     }
 
-    const reqItem = memoryDb.blockRequests.find(r => r.requestId === req.params.id);
-    if (reqItem) reqItem.status = status;
-    res.json({ success: true, request: reqItem });
+    const reqItem = memoryDb.blockRequests.find(r => r.requestId === requestId || r._id === requestId);
+    if (reqItem) {
+      reqItem.status = status;
+      if (rescheduledTime) reqItem.startTime = rescheduledTime;
+    }
+
+    // Also notify assigned user about block approval
+    memoryDb.tasks.filter(t => t.corridorId === (reqItem?.corridorId || 'VJA-GNT')).forEach(t => {
+      t.blockStatus = status;
+    });
+
+    res.json({ success: true, request: reqItem, message: `Block request ${requestId} marked as ${status}.` });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

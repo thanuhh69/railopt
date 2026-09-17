@@ -14,6 +14,7 @@ export default function Maintenance() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalTasks, setTotalTasks] = useState(0);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [prioritizing, setPrioritizing] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -418,11 +419,38 @@ function CreateTaskModal({ isOpen, onClose, onSuccess }) {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 font-bold text-xs rounded-xl">Cancel</button>
-            <button type="submit" disabled={submitting} className="px-5 py-2 bg-emerald-600 text-white font-black text-xs rounded-xl shadow-md">
-              {submitting ? 'Creating...' : 'Create & Allocate Task'}
+          <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setTitle('Track Inspection & Rail Defect Joint Repair');
+                setDepartment('Engineering');
+                setMaintenanceType('Rail Defect Repair');
+                setPriorityLevel('CRITICAL');
+                setBaseCity('Vijayawada');
+                setRailwayDivision('Vijayawada Division');
+                setZone('Vijayawada Area');
+                setCorridorId('VJA-GNT');
+                setSection('VJA-GDL');
+                setMaintenanceLocation('Track Section A-17');
+                setAssetId('TRK-VJA-A17');
+                setAssetName('Track Section A-17');
+                setDueDate('2026-09-17');
+                setStartTime('10:00 AM');
+                setEndTime('12:00 PM');
+                setAssignedUserEmail('user@railopt.demo');
+              }}
+              className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-[11px] rounded-xl border border-amber-300 flex items-center gap-1 cursor-pointer"
+            >
+              ⚡ Auto-Fill SIH Demo Task (Ravi Kumar)
             </button>
+            
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 font-bold text-xs rounded-xl">Cancel</button>
+              <button type="submit" disabled={submitting} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer">
+                {submitting ? 'Publishing...' : 'Assign & Publish to User'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

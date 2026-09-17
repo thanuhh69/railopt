@@ -277,18 +277,24 @@ export default function BlockPlanning() {
                     <td className="py-3 px-4 font-mono text-[11px] text-slate-500">{block.tasks?.join(', ')}</td>
                     <td className="py-3 px-4 font-bold">{block.status}</td>
                     <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleUpdateStatus(block.blockId, 'Approved')}
-                          className="px-2.5 py-1 bg-emerald-600 text-white rounded font-bold hover:bg-emerald-700 text-[10px]"
+                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-extrabold text-[10px] shadow-xs cursor-pointer"
                         >
-                          Approve
+                          Approve Plan
                         </button>
                         <button
-                          onClick={() => handleUpdateStatus(block.blockId, 'Rejected')}
-                          className="px-2.5 py-1 bg-red-100 text-red-800 rounded font-bold hover:bg-red-200 text-[10px]"
+                          onClick={() => handleUpdateStatus(block.blockId, 'Rescheduled')}
+                          className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-[10px] cursor-pointer"
                         >
-                          Reject
+                          Reschedule
+                        </button>
+                        <button
+                          onClick={() => setSelectedBlock(block)}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-bold text-[10px] cursor-pointer"
+                        >
+                          View Conflicts
                         </button>
                       </div>
                     </td>

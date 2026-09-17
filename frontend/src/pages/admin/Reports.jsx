@@ -7,10 +7,12 @@ export default function Reports() {
   };
 
   const reports = [
-    { type: 'blocks', title: 'Optimized Coordinated Block Plan', desc: 'Complete generated schedule with multi-department block windows and occupation hours.', icon: FileSpreadsheet, color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    { type: 'tasks', title: 'Maintenance Tasks & Priority Register', desc: 'Centralized engineering, S&T, and traction task dataset with Grok AI priority scores.', icon: FileText, color: 'text-blue-600 bg-blue-50 border-blue-200' },
-    { type: 'conflicts', title: 'Detected Conflicts & Resolutions', desc: 'Audit report of train overlaps, corridor availability breaches, and recommended resolutions.', icon: ShieldAlert, color: 'text-amber-600 bg-amber-50 border-amber-200' },
-    { type: 'weekly', title: 'Weekly & Monthly Plan Matrix', desc: 'Export Monday-Sunday block distribution for operational division dispatchers.', icon: FileSpreadsheet, color: 'text-purple-600 bg-purple-50 border-purple-200' }
+    { type: 'maintenance', title: 'Maintenance Tasks & Priority Register', desc: 'Centralized engineering, S&T, and traction task dataset with Grok AI priority scores.', icon: FileText, color: 'text-blue-600 bg-blue-50 border-blue-200' },
+    { type: 'completion', title: 'Completion & Verification Clearance Report', desc: 'Audit log of completed site maintenance work with Before/After photo evidence verification state.', icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+    { type: 'overdue', title: 'Overdue Defects & Critical Risk Report', desc: 'High-priority overdue track and signaling maintenance tasks requiring urgent block allocation.', icon: ShieldAlert, color: 'text-red-600 bg-red-50 border-red-200' },
+    { type: 'blocks', title: 'Optimized Coordinated Block Plan', desc: 'Complete generated schedule with multi-department block windows and occupation hours.', icon: FileSpreadsheet, color: 'text-indigo-600 bg-indigo-50 border-indigo-200' },
+    { type: 'conflicts', title: 'Detected Conflicts & Resolutions Audit', desc: 'Audit report of train overlaps, corridor availability breaches, and recommended resolutions.', icon: ShieldAlert, color: 'text-amber-600 bg-amber-50 border-amber-200' },
+    { type: 'department', title: 'Departmental Breakdown & Performance Matrix', desc: 'Inter-departmental block demand utilization summary for Engineering, Signal, and Traction.', icon: FileSpreadsheet, color: 'text-purple-600 bg-purple-50 border-purple-200' }
   ];
 
   return (
